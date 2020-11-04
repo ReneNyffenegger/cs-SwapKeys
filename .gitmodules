@@ -1,0 +1,3 @@
+[submodule "Win32-Hook"]
+	path = Win32-Hook
+	url = https://github.com/ReneNyffenegger/cs-Win32-Hook
