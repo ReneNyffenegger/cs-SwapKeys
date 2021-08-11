@@ -1,5 +1,7 @@
 // vi: foldmarker={{{,}}} foldmethod=marker
 //
+// V0.2
+//
 using System;
 using System.IO;
 using System.Diagnostics;
@@ -13,6 +15,7 @@ namespace TQ84 {
    public class SwapKeys {
 
       private static Win32.INPUT[] inputs;
+      private static int sizeOfInputs_1;
 
       public static void go() {
 
@@ -24,14 +27,17 @@ namespace TQ84 {
          inputs[0].U.ki.time        = (int)     0;
          inputs[0].U.ki.dwExtraInfo = (UIntPtr) 0;
 
+         sizeOfInputs_1 = System.Runtime.InteropServices.Marshal.SizeOf(inputs[0]);
+
          TQ84.Win32.Hook.KeyboardLL(keyboardEvent);
          Application.Run();
-
       }
 
       private static void replaceVKWith(Win32.VirtualKey vk) {
          inputs[0].U.ki.wVk = vk;
-         if (Win32.Hook.SendInput(1, inputs, System.Runtime.InteropServices.Marshal.SizeOf(inputs[0])) != 1) {
+//       if (Win32.Hook.SendInput(1, inputs, System.Runtime.InteropServices.Marshal.SizeOf(inputs[0])) != 1)
+         if (Win32.Hook.SendInput(1, inputs, sizeOfInputs_1) != 1)
+         {
              Console.WriteLine("SendInput() did not return 1");
          }
       }
@@ -63,17 +69,18 @@ namespace TQ84 {
                    return true;
                }
 
-               Console.WriteLine("scan: " + kbd.scanCode + ", vk = " + kbd.vkCode + ", wParam = " + wParam);
-
+           //
+           //  2021-08-11 / V0.2: Removing this line seemed to generally improve typing speed and reduce Null pointer exception errors.
+           //
+           //  Console.WriteLine("scan: " + kbd.scanCode + ", vk = " + kbd.vkCode + ", wParam = " + wParam);
+           //
                if (kbd.vkCode == (uint) Win32.VirtualKey.SNAPSHOT) { // Prt Scr
                   Win32.Hook.Stop();
                   Application.ExitThread();
 
                 //  Never reached:
                     return true;
-
               }
-
            }
 
            return false;
