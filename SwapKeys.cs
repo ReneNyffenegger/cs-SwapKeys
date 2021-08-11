@@ -1,6 +1,6 @@
 // vi: foldmarker={{{,}}} foldmethod=marker
 //
-// V0.2
+// V0.3
 //
 using System;
 using System.IO;
@@ -13,6 +13,9 @@ using TQ84;
 namespace TQ84 {
 
    public class SwapKeys {
+
+     [DllImport("USER32.dll")]
+      static extern short GetKeyState(int nVirtKey);
 
       private static Win32.INPUT[] inputs;
       private static int sizeOfInputs_1;
@@ -28,6 +31,19 @@ namespace TQ84 {
          inputs[0].U.ki.dwExtraInfo = (UIntPtr) 0;
 
          sizeOfInputs_1 = System.Runtime.InteropServices.Marshal.SizeOf(inputs[0]);
+
+         if (GetKeyState((int) Win32.VirtualKey.CAPITAL) == 1) {
+          //
+          // V0.3: Caps Lock is pressed. Because this is probably not desired when
+          // the application starts, we de-press Caps Lock here.
+          // TODO: Should GetAsyncKeyState() be used?
+          //
+             inputs[0].U.ki.dwFlags = 0; // Win32.KEYEVENTF.KEYDOWN;
+             replaceVKWith(Win32.VirtualKey.CAPITAL);
+
+             inputs[0].U.ki.dwFlags = Win32.KEYEVENTF.KEYUP;
+             replaceVKWith(Win32.VirtualKey.CAPITAL);
+         }
 
          TQ84.Win32.Hook.KeyboardLL(keyboardEvent);
          Application.Run();
@@ -68,9 +84,8 @@ namespace TQ84 {
                    Console.WriteLine("RWIN");
                    return true;
                }
-
            //
-           //  2021-08-11 / V0.2: Removing this line seemed to generally improve typing speed and reduce Null pointer exception errors.
+           //  V0.2: Removing this line seemed to generally improve typing speed and reduce Null pointer exception errors.
            //
            //  Console.WriteLine("scan: " + kbd.scanCode + ", vk = " + kbd.vkCode + ", wParam = " + wParam);
            //
